@@ -50,6 +50,8 @@ print('Done — open /hooks in Claude Code to reload.')
 
 No dependencies beyond `python3`, which is already on your machine. The command downloads the script and merges the required config into your existing `settings.json` without touching anything else.
 
+> **Already have a `statusLine` configured?** The command will replace it. Back up your existing `statusLine` entry in `~/.claude/settings.json` first, then manually chain your existing command if needed.
+
 ---
 
 ## How the thresholds were derived
