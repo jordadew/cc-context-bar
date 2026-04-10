@@ -35,45 +35,21 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 
 ## Install
 
-### Option 1 — Paste this prompt into Claude Code
-
-Open Claude Code and paste:
+Paste this into Claude Code:
 
 ```
 Set up cc-context-bar for me.
 
-1. Write the contents of https://raw.githubusercontent.com/jordan-adew/cc-context-bar/main/statusline.sh to ~/.claude/statusline.sh
+1. Fetch https://raw.githubusercontent.com/jordan-adew/cc-context-bar/main/statusline.sh and write it to ~/.claude/statusline.sh
 
-2. Add this to ~/.claude/settings.json (merge with existing, don't replace the file):
+2. Merge this into ~/.claude/settings.json without replacing any existing keys:
    "statusLine": {
      "type": "command",
      "command": "bash ~/.claude/statusline.sh"
    }
-
-No other dependencies needed.
 ```
 
-### Option 2 — Manual
-
-```bash
-curl -o ~/.claude/statusline.sh https://raw.githubusercontent.com/jordan-adew/cc-context-bar/main/statusline.sh
-chmod +x ~/.claude/statusline.sh
-```
-
-Then add to `~/.claude/settings.json`:
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline.sh"
-  }
-}
-```
-
-**Requirements:** `python3` (already on your Mac — no extra installs needed).
-
-Restart Claude Code or open `/hooks` to reload config.
+That's it. No dependencies beyond `python3`, which is already on your machine. Open `/hooks` in Claude Code to reload config.
 
 ---
 
