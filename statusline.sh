@@ -16,13 +16,12 @@ eval "$(echo "$input" | python3 -c "
 import json, sys, shlex
 d = json.load(sys.stdin)
 cw = d.get('context_window', {})
-u  = cw.get('current_usage', {})
 fields = [
     ('model',               str(d.get('model', {}).get('display_name', 'Unknown model'))),
     ('used_pct',            str(cw.get('used_percentage', ''))),
-    ('context_window_size', str(cw.get('max_tokens', 0))),
-    ('in_tokens',           str(u.get('input_tokens', ''))),
-    ('out_tokens',          str(u.get('output_tokens', ''))),
+    ('context_window_size', str(cw.get('context_window_size', cw.get('max_tokens', 0)))),
+    ('in_tokens',           str(cw.get('total_input_tokens', ''))),
+    ('out_tokens',          str(cw.get('total_output_tokens', ''))),
 ]
 for k, v in fields:
     print(k + '=' + shlex.quote(v))
