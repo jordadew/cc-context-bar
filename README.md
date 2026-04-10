@@ -35,21 +35,20 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 
 ## Install
 
-Paste this into Claude Code:
+Paste this into your terminal:
 
+```bash
+curl -fsSL https://raw.githubusercontent.com/jordan-adew/cc-context-bar/main/statusline.sh -o ~/.claude/statusline.sh && python3 -c "
+import json, pathlib
+p = pathlib.Path.home() / '.claude/settings.json'
+d = json.loads(p.read_text()) if p.exists() else {}
+d['statusLine'] = {'type': 'command', 'command': 'bash ~/.claude/statusline.sh'}
+p.write_text(json.dumps(d, indent=2))
+print('Done — open /hooks in Claude Code to reload.')
+"
 ```
-Set up cc-context-bar for me.
 
-1. Fetch https://raw.githubusercontent.com/jordan-adew/cc-context-bar/main/statusline.sh and write it to ~/.claude/statusline.sh
-
-2. Merge this into ~/.claude/settings.json without replacing any existing keys:
-   "statusLine": {
-     "type": "command",
-     "command": "bash ~/.claude/statusline.sh"
-   }
-```
-
-That's it. No dependencies beyond `python3`, which is already on your machine. Open `/hooks` in Claude Code to reload config.
+No dependencies beyond `python3`, which is already on your machine. The command downloads the script and merges the required config into your existing `settings.json` without touching anything else.
 
 ---
 
