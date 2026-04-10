@@ -28,6 +28,7 @@ for k, v in fields:
     print(k + '=' + shlex.quote(v))
 ")"
 
+model=$(echo "$model" | sed 's/^Claude //')
 model_lower=$(echo "$model" | tr '[:upper:]' '[:lower:]')
 
 # --- Context window progress bar ---
