@@ -92,7 +92,7 @@ reset=$(printf '\033[0m')
 
 # --- Output ---
 if [ -n "$model_icon" ]; then
-    printf "%s  |  %s ${model_color}%s${reset}%s" "$context_str" "$model_icon" "$model" "${token_segment:-}"
+    printf " %s  |  %s ${model_color}%s${reset}%s" "$context_str" "$model_icon" "$model" "${token_segment:-}"
 else
-    printf "%s  |  ◆ ${model_color}%s${reset}%s" "$context_str" "$model" "${token_segment:-}"
+    printf " %s  |  ◆ ${model_color}%s${reset}%s" "$context_str" "$model" "${token_segment:-}"
 fi
