@@ -5,7 +5,7 @@ A Claude Code status bar that tells you when you're burning through context — 
 Most Claude Code users don't realise their session cost is compounding quadratically until the context bar is already red. This script adds a cost-aware progress bar to your status line with thresholds derived from Anthropic's actual pricing data, calibrated differently for each model.
 
 ```
-[████████░░░░░░░░░░░░] 40%  |  ✴️ Claude Sonnet 4.6  |  ↓12.4k ↑3.1k
+[████████░░░░░░░░░░░░] 40%  |  ✴️ Sonnet 4.6  |  ↓12.4k ↑3.1k
 ```
 
 ---
