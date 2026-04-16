@@ -4,8 +4,10 @@ A Claude Code status bar that tells you when you're burning through context — 
 
 Most Claude Code users don't realise their session cost is compounding quadratically until the context bar is already red. This script adds a cost-aware progress bar to your status line with thresholds derived from Anthropic's actual pricing data, calibrated differently for each model.
 
-```
-[████████░░░░░░░░░░░░] 40%  |  ✴️ Sonnet 4.6  |  ↓12.4k ↑3.1k
+```ansi
+[38;5;196m[██████░░░░░░░░░░░░░░] 30%[0m  |  🅾️ [38;5;196mOpus 4.6[0m    |  ↓8.2k ↑2.1k
+[38;5;208m[████████░░░░░░░░░░░░] 40%[0m  |  ✴️ [38;5;208mSonnet 4.6[0m  |  ↓12.4k ↑3.1k
+[████████░░░░░░░░░░░░] 40%   |  ❇️ [38;5;46mHaiku 4.5[0m   |  ↓5.9k ↑1.8k
 ```
 
 ---
@@ -78,4 +80,4 @@ Where P = fraction of context used, T = max tokens, N = turns in session. Cache 
 
 ## Customising
 
-Thresholds are in `statusline.sh` around line 40. Each model has its own block — change the numbers to suit your workflow. Colors use 256-color ANSI (`38;5;N`) — see `docs/model-colors.md` for the palette reference.
+Thresholds are in `statusline.sh` around line 50. Each model has its own block — change the numbers to suit your workflow. Colors use 256-color ANSI (`38;5;N`) — see `docs/model-colors.md` for the palette reference.
