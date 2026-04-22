@@ -27,7 +27,7 @@ for k, v in fields:
     print(k + '=' + shlex.quote(v))
 ")"
 
-model=$(echo "$model" | sed 's/^Claude //')
+model=$(echo "$model" | sed 's/^Claude //; s/ context)/)/')
 model_lower=$(echo "$model" | tr '[:upper:]' '[:lower:]')
 
 # --- Context window progress bar ---
@@ -68,14 +68,18 @@ fi
 
 # --- Token counts ---
 format_tokens() {
-    t="$1"
-    [ "$t" -ge 1000 ] && awk "BEGIN { printf \"%.1fk\", $t / 1000 }" || echo "$t"
+    awk -v t="$1" 'BEGIN {
+        if      (t >= 1000000) printf "%.1fM", t/1000000
+        else if (t >= 10000)   printf "%.0fk", t/1000
+        else if (t >= 1000)    printf "%.1fk", t/1000
+        else                   printf "%d",    t
+    }'
 }
 
 if [ -n "$in_tokens" ] || [ -n "$out_tokens" ]; then
     in_str=$([ -n "$in_tokens" ]  && format_tokens "$in_tokens"  || echo "?")
     out_str=$([ -n "$out_tokens" ] && format_tokens "$out_tokens" || echo "?")
-    token_segment="  |  ↓${in_str} ↑${out_str}"
+    token_segment=" | ↓${in_str} ↑${out_str}"
 else
     token_segment=""
 fi
@@ -92,7 +96,7 @@ reset=$(printf '\033[0m')
 
 # --- Output ---
 if [ -n "$model_icon" ]; then
-    printf "%s  |  %s ${model_color}%s${reset}%s\n" "$context_str" "$model_icon" "$model" "${token_segment:-}"
+    printf "%s | %s ${model_color}%s${reset}%s\n" "$context_str" "$model_icon" "$model" "${token_segment:-}"
 else
-    printf "%s  |  ◆ ${model_color}%s${reset}%s\n" "$context_str" "$model" "${token_segment:-}"
+    printf "%s | ◆ ${model_color}%s${reset}%s\n" "$context_str" "$model" "${token_segment:-}"
 fi
