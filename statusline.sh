@@ -22,6 +22,8 @@ fields = [
     ('context_window_size', str(cw.get('context_window_size', cw.get('max_tokens', 0)))),
     ('in_tokens',           str(cw.get('total_input_tokens', ''))),
     ('out_tokens',          str(cw.get('total_output_tokens', ''))),
+    ('five_pct',            str(d.get('rate_limits', {}).get('five_hour', {}).get('used_percentage', ''))),
+    ('five_reset',          str(d.get('rate_limits', {}).get('five_hour', {}).get('resets_at', ''))),
 ]
 for k, v in fields:
     print(k + '=' + shlex.quote(v))
@@ -84,6 +86,32 @@ else
     token_segment=""
 fi
 
+# --- 5-hour usage window ---
+# Native fields (Pro/Max only, present after first API response of the session).
+# Absent early in a session or on non-subscription auth — degrade to nothing.
+if [ -n "$five_pct" ]; then
+    five_int=$(printf "%.0f" "$five_pct")
+
+    # Countdown to window reset (resets_at is Unix epoch seconds)
+    countdown=""
+    if [ -n "$five_reset" ]; then
+        rem=$(( five_reset - $(date +%s) ))
+        [ "$rem" -lt 0 ] && rem=0
+        h=$(( rem / 3600 )); m=$(( (rem % 3600) / 60 ))
+        if [ "$h" -gt 0 ]; then countdown=" ${h}h${m}m"; else countdown=" ${m}m"; fi
+    fi
+
+    # Color on how much of the window is spent — orange getting tight, red nearly gone
+    win_reset=$(printf '\033[0m')
+    if   [ "$five_int" -ge 85 ]; then win_color=$(printf '\033[38;5;196m')
+    elif [ "$five_int" -ge 60 ]; then win_color=$(printf '\033[38;5;208m')
+    else win_color=""; fi
+
+    window_segment=" | ${win_color}${five_int}%${countdown}${win_reset}"
+else
+    window_segment=""
+fi
+
 # --- Model identity: emoji + color ---
 # Colors match each model's emoji hue — see docs/model-colors.md
 case "$model_lower" in
@@ -96,7 +124,7 @@ reset=$(printf '\033[0m')
 
 # --- Output ---
 if [ -n "$model_icon" ]; then
-    printf "%s | %s ${model_color}%s${reset}%s\n" "$context_str" "$model_icon" "$model" "${token_segment:-}"
+    printf "%s | %s ${model_color}%s${reset}%s%s\n" "$context_str" "$model_icon" "$model" "${token_segment:-}" "${window_segment:-}"
 else
-    printf "%s | ◆ ${model_color}%s${reset}%s\n" "$context_str" "$model" "${token_segment:-}"
+    printf "%s | ◆ ${model_color}%s${reset}%s%s\n" "$context_str" "$model" "${token_segment:-}" "${window_segment:-}"
 fi
