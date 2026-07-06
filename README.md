@@ -5,9 +5,9 @@ A Claude Code status bar that tells you when you're burning through context — 
 Most Claude Code users don't realise their session cost is compounding quadratically until the context bar is already red. This script adds a cost-aware progress bar to your status line with thresholds derived from Anthropic's actual pricing data, calibrated differently for each model.
 
 ```
-[██████░░░░░░░░░░░░░░] 30%  |  🅾️ Opus 4.6    |  ↓8.2k ↑2.1k
-[████████░░░░░░░░░░░░] 40%  |  ✴️ Sonnet 4.6  |  ↓12.4k ↑3.1k
-[████████░░░░░░░░░░░░] 40%  |  ❇️ Haiku 4.5   |  ↓5.9k ↑1.8k
+[██████░░░░░░░░░░░░░░] 30%  |  🅾️ Opus 4.6    |  ↓8.2k ↑2.1k   |  42% 1h58m
+[████████░░░░░░░░░░░░] 40%  |  ✴️ Sonnet 4.6  |  ↓12.4k ↑3.1k  |  68% 3h4m
+[████████░░░░░░░░░░░░] 40%  |  ❇️ Haiku 4.5   |  ↓5.9k ↑1.8k   |  91% 22m
 ```
 
 ---
@@ -32,6 +32,8 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 - ❇️ Haiku — green
 
 **Token counts** — input/output tokens for the session shown inline.
+
+**5-hour usage window** — how much of your Max/Pro 5-hour rate-limit window you've spent, plus a live countdown to reset (`42% 1h58m`). Goes orange at 60%, red at 85%. Uses Claude Code's native `rate_limits` data — appears once the session's first API response lands, and silently omits itself otherwise (e.g. early in a session or on non-subscription auth).
 
 ---
 
