@@ -115,6 +115,7 @@ fi
 # --- Model identity: emoji + color ---
 # Colors match each model's emoji hue — see docs/model-colors.md
 case "$model_lower" in
+    *fable*)  model_icon="🈂️"; model_color=$(printf '\033[38;5;33m')  ;;  # blue
     *opus*)   model_icon="🅾️"; model_color=$(printf '\033[38;5;196m') ;;  # red
     *sonnet*) model_icon="✴️"; model_color=$(printf '\033[38;5;208m') ;;  # orange
     *haiku*)  model_icon="❇️"; model_color=$(printf '\033[38;5;46m')  ;;  # green

@@ -27,6 +27,7 @@ Most Claude Code users don't realise their session cost is compounding quadratic
 Opus fires early because 30% of a 1M context window at Opus cache-read rates costs ~$3 per turn to maintain. Haiku fires late because even a full session costs under $0.75 total.
 
 **Model identity** — your active model is labeled with a matching emoji and color so you always know what you're running:
+- 🈂️ Fable — blue
 - 🅾️ Opus — red
 - ✴️ Sonnet — orange
 - ❇️ Haiku — green
