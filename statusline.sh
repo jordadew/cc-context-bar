@@ -1,6 +1,6 @@
 #!/bin/sh
 # cc-context-bar — Claude Code status bar with cost-aware context tracking
-# https://github.com/jordan-adew/cc-context-bar
+# https://github.com/jordadew/cc-context-bar
 #
 # Adds a visual progress bar to the Claude Code status line that:
 # - Color-codes context usage based on per-model cost thresholds
@@ -36,7 +36,7 @@ model_lower=$(echo "$model" | tr '[:upper:]' '[:lower:]')
 if [ -n "$used_pct" ]; then
     used_int=$(printf "%.0f" "$used_pct")
 
-    bar_width=20
+    bar_width=14
     filled=$(( used_int * bar_width / 100 ))
     empty=$(( bar_width - filled ))
 
@@ -65,7 +65,7 @@ if [ -n "$used_pct" ]; then
 
     context_str="${bar_color}[${bar}] ${used_int}%${color_reset}"
 else
-    context_str="[--------------------] --%"
+    context_str="[--------------] --%"
 fi
 
 # --- Token counts ---
