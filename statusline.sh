@@ -24,7 +24,29 @@ fields = [
     ('out_tokens',          str(cw.get('total_output_tokens', ''))),
     ('five_pct',            str(d.get('rate_limits', {}).get('five_hour', {}).get('used_percentage', ''))),
     ('five_reset',          str(d.get('rate_limits', {}).get('five_hour', {}).get('resets_at', ''))),
+    ('week_pct',            str(d.get('rate_limits', {}).get('seven_day', {}).get('used_percentage', ''))),
+    ('week_reset',          str(d.get('rate_limits', {}).get('seven_day', {}).get('resets_at', ''))),
 ]
+# Prompt cache: minutes left on the 1h TTL since the last assistant turn (blank if unknown)
+cache_rem = ''
+tp = d.get('transcript_path')
+if tp:
+    try:
+        import os, time
+        from datetime import datetime
+        with open(tp, 'rb') as f:
+            f.seek(0, 2); f.seek(max(0, f.tell() - 262144))
+            tail = f.read().decode('utf-8', 'ignore').splitlines()
+        for line in reversed(tail):
+            try: e = json.loads(line)
+            except Exception: continue
+            if e.get('type') == 'assistant' and e.get('timestamp'):
+                t = datetime.fromisoformat(e['timestamp'].replace('Z', '+00:00')).timestamp()
+                cache_rem = str(max(0, -(-(3600 - (time.time() - t)) // 60)))  # ceil minutes
+                break
+    except Exception:
+        pass
+fields.append(('cache_rem', str(int(float(cache_rem))) if cache_rem else ''))
 for k, v in fields:
     print(k + '=' + shlex.quote(v))
 ")"
@@ -86,30 +108,80 @@ else
     token_segment=""
 fi
 
-# --- 5-hour usage window ---
+# --- Usage windows: 5-hour + 7-day ---
 # Native fields (Pro/Max only, present after first API response of the session).
 # Absent early in a session or on non-subscription auth — degrade to nothing.
-if [ -n "$five_pct" ]; then
-    five_int=$(printf "%.0f" "$five_pct")
+# window_str <label> <pct> <resets_at> -> e.g. "5h 29% 3h58m" / "7d 30% 3d"
+window_str() {
+    [ -n "$2" ] || return
+    pct_int=$(printf "%.0f" "$2")
 
     # Countdown to window reset (resets_at is Unix epoch seconds)
     countdown=""
-    if [ -n "$five_reset" ]; then
-        rem=$(( five_reset - $(date +%s) ))
+    if [ -n "$3" ]; then
+        rem=$(( $3 - $(date +%s) ))
         [ "$rem" -lt 0 ] && rem=0
-        h=$(( rem / 3600 )); m=$(( (rem % 3600) / 60 ))
-        if [ "$h" -gt 0 ]; then countdown=" ${h}h${m}m"; else countdown=" ${m}m"; fi
+        d=$(( rem / 86400 )); h=$(( (rem % 86400) / 3600 )); m=$(( (rem % 3600) / 60 ))
+        # 7d window: whole days only, then whole hours on the last day
+        if   [ "$d" -gt 0 ]; then countdown=" ${d}d"
+        elif [ "$h" -gt 0 ] && [ "$1" = 7d ]; then countdown=" ${h}h${m}m"
+        elif [ "$h" -gt 0 ]; then countdown=" ${h}h${m}m"
+        else countdown=" ${m}m"; fi
     fi
 
     # Color on how much of the window is spent — orange getting tight, red nearly gone
-    win_reset=$(printf '\033[0m')
-    if   [ "$five_int" -ge 85 ]; then win_color=$(printf '\033[38;5;196m')
-    elif [ "$five_int" -ge 60 ]; then win_color=$(printf '\033[38;5;208m')
+    if   [ "$pct_int" -ge 85 ]; then win_color=$(printf '\033[38;5;196m')
+    elif [ "$pct_int" -ge 60 ]; then win_color=$(printf '\033[38;5;208m')
     else win_color=""; fi
 
-    window_segment=" | ${win_color}${five_int}%${countdown}${win_reset}"
-else
-    window_segment=""
+    # 7d pace glyph: projected landing at reset = used% / elapsed%. Blank during the
+    # first 10% of the window, once >=100% used, or without a reset time.
+    glyph=""
+    if [ "$1" = 7d ] && [ -n "$3" ] && [ "$pct_int" -lt 100 ]; then
+        state="$HOME/.claude/.pace-state"
+        prev=$(cat "$state" 2>/dev/null)
+        lvl=$(awk -v u="$2" -v r="$3" -v now="$(date +%s)" -v prev="$prev" 'BEGIN {
+            e = 1 - (r - now) / 604800
+            if (e < 0.10 || e > 1) { print "none"; exit }
+            p = u / e                       # projected % at reset
+            b[1] = 90; b[2] = 105; b[3] = 130
+            if (prev ~ /^[0-3]$/) {         # +-2 dead zone around band edges
+                l = prev + 0
+                while (l < 3 && p >= b[l+1] + 2) l++
+                while (l > 0 && p <  b[l]   - 2) l--
+            } else { l = 0; for (i = 1; i <= 3; i++) if (p >= b[i]) l = i }
+            print l
+        }')
+        case "$lvl" in
+            0) g="▼" ;; 1) g="●" ;; 2) g="▲" ;; 3) g="▲▲" ;; *) g="" ;;
+        esac
+        if [ -n "$g" ]; then
+            echo "$lvl" > "$state"
+            glyph="$(printf '\033[2m')${g}$(printf '\033[22m')"
+        fi
+    fi
+
+    printf "%s%s %s%%%s%s%s%s" "$win_color" "$1" "$pct_int" "$glyph" "$countdown" "$(printf '\033[0m')"
+}
+
+five_str=$(window_str 5h "$five_pct" "$five_reset")
+week_str=$(window_str 7d "$week_pct" "$week_reset")
+windows="${five_str}${five_str:+${week_str:+ · }}${week_str}"
+window_segment="${windows:+ | $windows}"
+
+# --- Prompt cache countdown (pie empties by quarter) ---
+# 1h TTL from last assistant turn. Orange <=20m, red <=5m, grey when cold.
+if [ -n "$cache_rem" ]; then
+    if   [ "$cache_rem" -gt 45 ]; then pie="●"
+    elif [ "$cache_rem" -gt 30 ]; then pie="◕"
+    elif [ "$cache_rem" -gt 15 ]; then pie="◑"
+    elif [ "$cache_rem" -gt 0 ];  then pie="◔"
+    else pie="○"; fi
+    if   [ "$cache_rem" -le 0 ];  then c_color=$(printf '\033[38;5;245m'); c_text="cold"
+    elif [ "$cache_rem" -le 5 ];  then c_color=$(printf '\033[38;5;196m'); c_text="${cache_rem}m"
+    elif [ "$cache_rem" -le 20 ]; then c_color=$(printf '\033[38;5;208m'); c_text="${cache_rem}m"
+    else c_color=""; c_text="${cache_rem}m"; fi
+    window_segment="${window_segment} | ${c_color}${pie} ${c_text}$(printf '\033[0m')"
 fi
 
 # --- Model identity: emoji + color ---

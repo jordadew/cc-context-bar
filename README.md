@@ -5,9 +5,9 @@ A Claude Code status bar that tells you when you're burning through context — 
 Most Claude Code users don't realise their session cost is compounding quadratically until the context bar is already red. This script adds a cost-aware progress bar to your status line with thresholds derived from Anthropic's actual pricing data, calibrated differently for each model.
 
 ```
-[██████░░░░░░░░░░░░░░] 30%  |  🅾️ Opus 4.6    |  ↓8.2k ↑2.1k   |  42% 1h58m
-[████████░░░░░░░░░░░░] 40%  |  ✴️ Sonnet 4.6  |  ↓12.4k ↑3.1k  |  68% 3h4m
-[████████░░░░░░░░░░░░] 40%  |  ❇️ Haiku 4.5   |  ↓5.9k ↑1.8k   |  91% 22m
+[████░░░░░░░░░░] 30% | 🅾️ Opus 4.6 | ↓8.2k ↑2.1k | 5h 42% 1h58m · 7d 61%● 3d | ◑ 28m
+[█████░░░░░░░░░] 40% | ✴️ Sonnet 5.5 | ↓12k ↑3.1k | 5h 68% 3h4m · 7d 74%▲ 2d | ◕ 41m
+[███████░░░░░░░] 50% | ❇️ Haiku 4.5 | ↓5.9k ↑1.8k | 5h 91% 22m · 7d 38%▼ 4d | ○ cold
 ```
 
 ---
@@ -21,7 +21,7 @@ Most Claude Code users don't realise their session cost is compounding quadratic
 | Model | Goes orange | Goes red | Signal |
 |-------|-------------|----------|--------|
 | Opus 4.6 (1M context) | 15% | 30% | Cost — ~$1 / ~$3 cumulative cache spend |
-| Sonnet 4.6 | 40% | 62% | Cost + context — ~$0.50 / ~$1.00 |
+| Sonnet 5.5 | 40% | 62% | Cost + context — ~$0.50 / ~$1.00 |
 | Haiku 4.5 | 50% | 75% | Context only — cost is negligible |
 
 Opus fires early because 30% of a 1M context window at Opus cache-read rates costs ~$3 per turn to maintain. Haiku fires late because even a full session costs under $0.75 total.
@@ -34,7 +34,20 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 
 **Token counts** — input/output tokens for the session shown inline.
 
-**5-hour usage window** — how much of your Max/Pro 5-hour rate-limit window you've spent, plus a live countdown to reset (`42% 1h58m`). Goes orange at 60%, red at 85%. Uses Claude Code's native `rate_limits` data — appears once the session's first API response lands, and silently omits itself otherwise (e.g. early in a session or on non-subscription auth).
+**5-hour and 7-day usage windows** — how much of each Max/Pro rate-limit window you've spent, plus a live countdown to reset (`5h 42% 1h58m · 7d 61% 3d`). Each goes orange at 60%, red at 85%. Uses Claude Code's native `rate_limits` data — appears once the session's first API response lands, and silently omits itself otherwise (e.g. early in a session or on non-subscription auth).
+
+**7-day pace glyph** — a dim glyph after the 7d % showing where you'll land at reset if you keep burning at your window-average rate (`used% / elapsed%`):
+
+| Glyph | Projected at reset | Meaning |
+|-------|--------------------|---------|
+| `▲▲` | ≥130% | Out well before reset |
+| `▲` | 105–130% | Over, will probably hit the cap |
+| `●` | 90–105% | On track, you use it all |
+| `▼` | <90% | Under, quota left unused |
+
+Blank for the first 10% of the window (the projection is noise), once you're at 100%, or without a reset time. A ±2% dead zone stops it flickering at band edges; the last level is kept in `~/.claude/.pace-state`. The bands are in `window_str` in `statusline.sh`.
+
+**Prompt-cache countdown** — a pie that empties by quarter over the 1h cache TTL since the last assistant turn (`● ◕ ◑ ◔`), orange at 20m, red at 5m, grey `○ cold` once expired. Read from the session transcript.
 
 ---
 
@@ -43,7 +56,7 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 Paste this into your terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jordan-adew/cc-context-bar/main/statusline.sh -o ~/.claude/statusline.sh && python3 -c "
+curl -fsSL https://raw.githubusercontent.com/jordadew/cc-context-bar/main/statusline.sh -o ~/.claude/statusline.sh && python3 -c "
 import json, pathlib
 p = pathlib.Path.home() / '.claude/settings.json'
 d = json.loads(p.read_text()) if p.exists() else {}
