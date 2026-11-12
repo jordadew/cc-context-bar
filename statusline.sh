@@ -195,8 +195,23 @@ esac
 reset=$(printf '\033[0m')
 
 # --- Output ---
-if [ -n "$model_icon" ]; then
-    printf "%s | %s ${model_color}%s${reset}%s%s\n" "$context_str" "$model_icon" "$model" "${token_segment:-}" "${window_segment:-}"
+# Usage windows + cache drop to a second line when the full bar won't fit.
+# Claude Code passes the pane width as $COLUMNS; keep a small margin for its padding.
+line1="${context_str} | ${model_icon:-◆} ${model_color}${model}${reset}${token_segment:-}"
+full="${line1}${window_segment:-}"
+vis_width() {
+    printf '%s' "$1" | python3 -c "
+import re, sys, unicodedata as u
+s = re.sub(r'\x1b\[[0-9;]*m', '', sys.stdin.read())
+w = 0
+for i, c in enumerate(s):
+    if c == '\ufe0f': continue
+    vs16 = i + 1 < len(s) and s[i+1] == '\ufe0f'
+    w += 2 if vs16 or u.east_asian_width(c) in 'WF' else 1
+print(w)"
+}
+if [ -n "$window_segment" ] && [ -n "$COLUMNS" ] && [ "$(vis_width "$full")" -gt $(( COLUMNS - 4 )) ]; then
+    printf "%s\n%s\n" "$line1" "${window_segment# | }"
 else
-    printf "%s | ◆ ${model_color}%s${reset}%s%s\n" "$context_str" "$model" "${token_segment:-}" "${window_segment:-}"
+    printf "%s\n" "$full"
 fi

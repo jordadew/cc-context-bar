@@ -49,6 +49,8 @@ Blank for the first 10% of the window (the projection is noise), once you're at 
 
 **Prompt-cache countdown** — a pie that empties by quarter over the 1h cache TTL since the last assistant turn (`● ◕ ◑ ◔`), orange at 20m, red at 5m, grey `○ cold` once expired. Read from the session transcript.
 
+**Wraps in narrow windows** — when the full bar is wider than the pane (`$COLUMNS`, passed by Claude Code), the usage windows and cache countdown move to a second line.
+
 ---
 
 ## Install
