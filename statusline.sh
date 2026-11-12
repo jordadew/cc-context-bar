@@ -122,9 +122,8 @@ window_str() {
         rem=$(( $3 - $(date +%s) ))
         [ "$rem" -lt 0 ] && rem=0
         d=$(( rem / 86400 )); h=$(( (rem % 86400) / 3600 )); m=$(( (rem % 3600) / 60 ))
-        # 7d window: whole days only, then whole hours on the last day
-        if   [ "$d" -gt 0 ]; then countdown=" ${d}d"
-        elif [ "$h" -gt 0 ] && [ "$1" = 7d ]; then countdown=" ${h}h${m}m"
+        # 7d window: days + hours, then hours + minutes on the last day
+        if   [ "$d" -gt 0 ]; then countdown=" ${d}d${h}h"
         elif [ "$h" -gt 0 ]; then countdown=" ${h}h${m}m"
         else countdown=" ${m}m"; fi
     fi

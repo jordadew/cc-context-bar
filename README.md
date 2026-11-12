@@ -5,7 +5,7 @@ A Claude Code status bar that tells you when you're burning through context — 
 Most Claude Code users don't realise their session cost is compounding quadratically until the context bar is already red. This script adds a cost-aware progress bar to your status line with thresholds derived from Anthropic's actual pricing data, calibrated differently for each model.
 
 ```
-[████░░░░░░░░░░] 30% | 🅾️ Opus 4.6 | ↓8.2k ↑2.1k | 5h 42% 1h58m · 7d 61%● 3d | ◑ 28m
+[████░░░░░░░░░░] 30% | 🅾️ Opus 4.6 | ↓8.2k ↑2.1k | 5h 42% 1h58m · 7d 61%● 3d4h | ◑ 28m
 [█████░░░░░░░░░] 40% | ✴️ Sonnet 5.5 | ↓12k ↑3.1k | 5h 68% 3h4m · 7d 74%▲ 2d | ◕ 41m
 [███████░░░░░░░] 50% | ❇️ Haiku 4.5 | ↓5.9k ↑1.8k | 5h 91% 22m · 7d 38%▼ 4d | ○ cold
 ```
@@ -34,7 +34,7 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 
 **Token counts** — input/output tokens for the session shown inline.
 
-**5-hour and 7-day usage windows** — how much of each Max/Pro rate-limit window you've spent, plus a live countdown to reset (`5h 42% 1h58m · 7d 61% 3d`). Each goes orange at 60%, red at 85%. Uses Claude Code's native `rate_limits` data — appears once the session's first API response lands, and silently omits itself otherwise (e.g. early in a session or on non-subscription auth).
+**5-hour and 7-day usage windows** — how much of each Max/Pro rate-limit window you've spent, plus a live countdown to reset (`5h 42% 1h58m · 7d 61% 3d4h`). Each goes orange at 60%, red at 85%. Uses Claude Code's native `rate_limits` data — appears once the session's first API response lands, and silently omits itself otherwise (e.g. early in a session or on non-subscription auth).
 
 **7-day pace glyph** — a dim glyph after the 7d % showing where you'll land at reset if you keep burning at your window-average rate (`used% / elapsed%`):
 
