@@ -133,7 +133,8 @@ window_str() {
     elif [ "$pct_int" -ge 60 ]; then win_color=$(printf '\033[38;5;208m')
     else win_color=""; fi
 
-    # 7d pace glyph: projected landing at reset = used% / elapsed%. Blank during the
+    # 7d pace glyph: projected landing at reset = used% / elapsed%.
+    # <70 ▼▼ · 70-90 ▼ · 90-105 ● · 105-130 ▲ · >=130 ▲▲. Blank during the
     # first 10% of the window, once >=100% used, or without a reset time.
     glyph=""
     if [ "$1" = 7d ] && [ -n "$3" ] && [ "$pct_int" -lt 100 ]; then
@@ -143,16 +144,16 @@ window_str() {
             e = 1 - (r - now) / 604800
             if (e < 0.10 || e > 1) { print "none"; exit }
             p = u / e                       # projected % at reset
-            b[1] = 90; b[2] = 105; b[3] = 130
-            if (prev ~ /^[0-3]$/) {         # +-2 dead zone around band edges
+            b[1] = 70; b[2] = 90; b[3] = 105; b[4] = 130   # symmetric ~30 pts around 100
+            if (prev ~ /^[0-4]$/) {         # +-2 dead zone around band edges
                 l = prev + 0
-                while (l < 3 && p >= b[l+1] + 2) l++
+                while (l < 4 && p >= b[l+1] + 2) l++
                 while (l > 0 && p <  b[l]   - 2) l--
-            } else { l = 0; for (i = 1; i <= 3; i++) if (p >= b[i]) l = i }
+            } else { l = 0; for (i = 1; i <= 4; i++) if (p >= b[i]) l = i }
             print l
         }')
         case "$lvl" in
-            0) g="▼" ;; 1) g="●" ;; 2) g="▲" ;; 3) g="▲▲" ;; *) g="" ;;
+            0) g="▼▼" ;; 1) g="▼" ;; 2) g="●" ;; 3) g="▲" ;; 4) g="▲▲" ;; *) g="" ;;
         esac
         if [ -n "$g" ]; then
             echo "$lvl" > "$state"

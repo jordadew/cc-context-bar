@@ -43,7 +43,8 @@ Opus fires early because 30% of a 1M context window at Opus cache-read rates cos
 | `▲▲` | ≥130% | Out well before reset |
 | `▲` | 105–130% | Over, will probably hit the cap |
 | `●` | 90–105% | On track, you use it all |
-| `▼` | <90% | Under, quota left unused |
+| `▼` | 70–90% | Under, some quota left unused |
+| `▼▼` | <70% | Well under, a lot of quota left unused |
 
 Blank for the first 10% of the window (the projection is noise), once you're at 100%, or without a reset time. A ±2% dead zone stops it flickering at band edges; the last level is kept in `~/.claude/.pace-state`. The bands are in `window_str` in `statusline.sh`.
 
